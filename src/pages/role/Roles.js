@@ -3,20 +3,28 @@ import { useEffect, useState } from "react";
 import { Link, Redirect } from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
 import Controls from "../../components/controls/Controls";
-import { getAllVisitTypes } from "../../services/visitTypeService";
+import { getRoles } from "../../services/roleService";
 
-const VisitTypes = () => {
-  const [visitTypes, setVisitTypes] = useState([]);
+const Roles = () => {
+  const [roles, setRoles] = useState([]);
   const [redirect, setRedirect] = useState(null);
 
   const columns = [
     {
-      title: "Name",
-      field: "name"
+      title: "Role",
+      field: "role"
     },
     {
       title: "Description",
       field: "description"
+    },
+    {
+      title: "Inherited Roles",
+      field: "parentRoles"
+    },
+    {
+      title: "Privileges",
+      field: "rolePrivileges"
     }
   ];
 
@@ -28,16 +36,16 @@ const VisitTypes = () => {
   };
 
   useEffect(() => {
-    const loadVisitTypes = async () => {
+    const loadRoles = async () => {
       try {
-        const response = await getAllVisitTypes();
-        setVisitTypes(response.data);
+        const response = await getRoles();
+        setRoles(response.data);
       } catch (e) {
         console.warn(e);
       }
     };
 
-    loadVisitTypes();
+    loadRoles();
   }, []);
 
   const components = {
@@ -45,7 +53,7 @@ const VisitTypes = () => {
       <div>
         <MTableToolbar {...props} />
         <div className="text-end" style={{ padding: "0px 10px" }}>
-          <Link to="/visitType/edit/add">
+          <Link to="/role/edit/add">
             <Controls.AddButton />
           </Link>
         </div>
@@ -57,8 +65,7 @@ const VisitTypes = () => {
     {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
-      onClick: (event, rowData) =>
-        setRedirect(`/visitType/edit/${rowData.uuid}`)
+      onClick: (event, rowData) => setRedirect(`/role/edit/${rowData.uuid}`)
     }
   ];
 
@@ -68,8 +75,8 @@ const VisitTypes = () => {
     <>
       <div style={{ maxWidth: "90%", margin: "auto" }}>
         <MaterialTable
-          title="Visit Types"
-          data={visitTypes}
+          title="Current Roles"
+          data={roles}
           columns={columns}
           options={options}
           components={components}
@@ -80,4 +87,4 @@ const VisitTypes = () => {
   );
 };
 
-export default VisitTypes;
+export default Roles;

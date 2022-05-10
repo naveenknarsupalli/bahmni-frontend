@@ -58,7 +58,7 @@ const PersonAttributeTypes = () => {
       <div>
         <MTableToolbar {...props} />
         <div className="text-end" style={{ padding: "0px 10px" }}>
-          <Link to="/personAttributeType/add">
+          <Link to="/personAttributeType/edit/add">
             <Controls.AddButton />
           </Link>
         </div>
@@ -71,7 +71,7 @@ const PersonAttributeTypes = () => {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
       onClick: (event, rowData) =>
-        setRedirect(`/personAttributeType/${rowData.uuid}`)
+        setRedirect(`/personAttributeType/edit/${rowData.uuid}`)
     }
   ];
 

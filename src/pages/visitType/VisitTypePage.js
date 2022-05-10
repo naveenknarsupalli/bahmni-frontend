@@ -4,14 +4,15 @@ import VisitTypeForm from "./VisitTypeForm";
 import VisitTypes from "./VisitTypes";
 
 export default function VisitTypePage() {
-  const { id } = useParams();
+  const { id, action } = useParams();
 
   return (
     <CommonPage
       id={id}
+      action={action}
       title="Visit Type Management"
-      displayAll={<VisitTypes />}
-      displayForm={<VisitTypeForm id={id} />}
+      viewAll={<VisitTypes />}
+      addOrEdit={<VisitTypeForm id={id} />}
     />
   );
 }

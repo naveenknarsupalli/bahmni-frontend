@@ -3,13 +3,14 @@ import CommonPage from "../../components/CommonPage";
 import AddressHierarchyLevels from "./AddressHierarchyLevels";
 
 export default function AddressHierarchyLevelPage() {
-  const { id } = useParams();
+  const { action, id } = useParams();
 
   return (
     <CommonPage
       id={id}
+      action={action}
       title="Address Hierarchy Management"
-      displayAll={<AddressHierarchyLevels />}
+      viewAll={<AddressHierarchyLevels />}
     />
   );
 }

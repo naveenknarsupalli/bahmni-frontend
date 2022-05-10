@@ -86,7 +86,7 @@ const PersonAttributeForm = () => {
         response = await updatePersonAttributeTypeById(id, values);
       }
       if (response.status === 200 || response.status === 201) {
-        setRedirect("/personAttributeType/all");
+        setRedirect("/personAttributeType/view/all");
       }
     };
 
@@ -98,14 +98,14 @@ const PersonAttributeForm = () => {
   };
 
   const cancel = () => {
-    setRedirect("/personAttributeType/all");
+    setRedirect("/personAttributeType/view/all");
   };
 
   const deleteItem = () => {
     const deleteItemFunc = async () => {
       const response = await deletePersonAttributeTypeById(id);
       if (response.status === 204) {
-        setRedirect("/personAttributeType/all");
+        setRedirect("/personAttributeType/view/all");
       }
     };
     deleteItemFunc();

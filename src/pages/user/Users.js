@@ -58,7 +58,7 @@ const Users = () => {
       <div>
         <MTableToolbar {...props} />
         <div className="text-end" style={{ padding: "0px 10px" }}>
-          <Link to="/user/add">
+          <Link to="/user/edit/add">
             <Controls.AddButton />
           </Link>
         </div>

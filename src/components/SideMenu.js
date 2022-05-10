@@ -29,25 +29,25 @@ export default function SideMenu() {
         <MenuList>
           <MenuItem>
             <Link
-              to="/addressHierarchyLevel/all"
+              to="/addressHierarchyLevel/view/all"
               style={{ textDecoration: "none" }}
             >
               Address Hierarchy
             </Link>
           </MenuItem>
           <MenuItem>
-            <Link to="/concept/all" style={{ textDecoration: "none" }}>
+            <Link to="/concept/view/all" style={{ textDecoration: "none" }}>
               Concepts
             </Link>
           </MenuItem>
           <MenuItem>
-            <Link to="/drug/all" style={{ textDecoration: "none" }}>
+            <Link to="/drug/view/all" style={{ textDecoration: "none" }}>
               Medication Data
             </Link>
           </MenuItem>
           <MenuItem>
             <Link
-              to="/patientRelationshipType/all"
+              to="/patientRelationshipType/view/all"
               style={{ textDecoration: "none" }}
             >
               Patient Relationships
@@ -56,19 +56,29 @@ export default function SideMenu() {
 
           <MenuItem>
             <Link
-              to="/personAttributeType/all"
+              to="/personAttributeType/view/all"
               style={{ textDecoration: "none" }}
             >
               Person Attributes
             </Link>
           </MenuItem>
           <MenuItem>
-            <Link to="/user/all" style={{ textDecoration: "none" }}>
+            <Link to="/user/view/all" style={{ textDecoration: "none" }}>
               Users
             </Link>
           </MenuItem>
           <MenuItem>
-            <Link to="/visitType/all" style={{ textDecoration: "none" }}>
+            <Link to="/role/view/all" style={{ textDecoration: "none" }}>
+              Roles
+            </Link>
+          </MenuItem>
+          <MenuItem>
+            <Link to="/privilege/view/all" style={{ textDecoration: "none" }}>
+              Privileges
+            </Link>
+          </MenuItem>
+          <MenuItem>
+            <Link to="/visitType/view/all" style={{ textDecoration: "none" }}>
               Visit Types
             </Link>
           </MenuItem>

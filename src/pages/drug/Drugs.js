@@ -70,7 +70,7 @@ const Drugs = () => {
             label={showRetired ? "Hide Retired" : "Show Retired"}
             labelPlacement="start"
           />
-          <Link to="/drug/add">
+          <Link to="/drug/edit/add">
             <Controls.AddButton />
           </Link>
         </div>
@@ -82,7 +82,7 @@ const Drugs = () => {
     {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
-      onClick: (event, rowData) => setRedirect(`/drug/${rowData.uuid}`)
+      onClick: (event, rowData) => setRedirect(`/drug/edit/${rowData.uuid}`)
     }
   ];
 

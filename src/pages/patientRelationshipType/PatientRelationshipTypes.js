@@ -50,7 +50,7 @@ const PatientRelationshipTypes = () => {
       <div>
         <MTableToolbar {...props} />
         <div className="text-end" style={{ padding: "0px 10px" }}>
-          <Link to="/patientRelationshipType/add">
+          <Link to="/patientRelationshipType/edit/add">
             <Controls.AddButton />
           </Link>
         </div>
@@ -63,7 +63,7 @@ const PatientRelationshipTypes = () => {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
       onClick: (event, rowData) =>
-        setRedirect(`/patientRelationshipType/${rowData.uuid}`)
+        setRedirect(`/patientRelationshipType/edit/${rowData.uuid}`)
     }
     // (rowData) => ({
     //   icon: () =>

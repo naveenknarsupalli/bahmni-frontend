@@ -4,14 +4,15 @@ import PersonAttributeForm from "./PersonAttributeForm";
 import PersonAttributeTypes from "./PersonAttributeTypes";
 
 export default function PersonAttributeTypePage() {
-  const { id } = useParams();
+  const { id, action } = useParams();
 
   return (
     <CommonPage
       id={id}
+      action={action}
       title="Person Attribute Management"
-      displayAll={<PersonAttributeTypes />}
-      displayForm={<PersonAttributeForm id={id} />}
+      viewAll={<PersonAttributeTypes />}
+      addOrEdit={<PersonAttributeForm id={id} />}
     />
   );
 }

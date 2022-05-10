@@ -3,16 +3,16 @@ import { useEffect, useState } from "react";
 import { Link, Redirect } from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
 import Controls from "../../components/controls/Controls";
-import { getAllVisitTypes } from "../../services/visitTypeService";
+import { getPrivileges } from "../../services/privilegeService";
 
-const VisitTypes = () => {
-  const [visitTypes, setVisitTypes] = useState([]);
+const Privileges = () => {
+  const [privileges, setPrivileges] = useState([]);
   const [redirect, setRedirect] = useState(null);
 
   const columns = [
     {
-      title: "Name",
-      field: "name"
+      title: "Privilege Name",
+      field: "privilege"
     },
     {
       title: "Description",
@@ -28,16 +28,16 @@ const VisitTypes = () => {
   };
 
   useEffect(() => {
-    const loadVisitTypes = async () => {
+    const loadPrivileges = async () => {
       try {
-        const response = await getAllVisitTypes();
-        setVisitTypes(response.data);
+        const response = await getPrivileges();
+        setPrivileges(response.data);
       } catch (e) {
         console.warn(e);
       }
     };
 
-    loadVisitTypes();
+    loadPrivileges();
   }, []);
 
   const components = {
@@ -45,7 +45,7 @@ const VisitTypes = () => {
       <div>
         <MTableToolbar {...props} />
         <div className="text-end" style={{ padding: "0px 10px" }}>
-          <Link to="/visitType/edit/add">
+          <Link to="/privilege/edit/add">
             <Controls.AddButton />
           </Link>
         </div>
@@ -58,7 +58,7 @@ const VisitTypes = () => {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
       onClick: (event, rowData) =>
-        setRedirect(`/visitType/edit/${rowData.uuid}`)
+        setRedirect(`/privilege/edit/${rowData.uuid}`)
     }
   ];
 
@@ -68,8 +68,8 @@ const VisitTypes = () => {
     <>
       <div style={{ maxWidth: "90%", margin: "auto" }}>
         <MaterialTable
-          title="Visit Types"
-          data={visitTypes}
+          title="Privileges"
+          data={privileges}
           columns={columns}
           options={options}
           components={components}
@@ -80,4 +80,4 @@ const VisitTypes = () => {
   );
 };
 
-export default VisitTypes;
+export default Privileges;

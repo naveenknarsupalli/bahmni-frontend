@@ -4,14 +4,15 @@ import PatientRelationshipForm from "./PatientRelationshipForm";
 import PatientRelationshipTypes from "./PatientRelationshipTypes";
 
 export default function PatientRelationshipTypePage() {
-  const { id } = useParams();
+  const { id, action } = useParams();
 
   return (
     <CommonPage
       id={id}
+      action={action}
       title="Patient Relationship Management"
-      displayAll={<PatientRelationshipTypes />}
-      displayForm={<PatientRelationshipForm id={id} />}
+      viewAll={<PatientRelationshipTypes />}
+      addOrEdit={<PatientRelationshipForm id={id} />}
     />
   );
 }

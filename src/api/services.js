@@ -4,11 +4,13 @@ import {
   CONCEPT_DATA_TYPE,
   CONCEPT_NAME,
   DRUG,
+  PERSON_NAME,
   PERSON_ATTRIBUTE_TYPE,
   PRIVILEGE,
   RELATIONSHIP,
   VISIT_TYPE,
   USER,
+  ROLE,
   CONCEPT_MAP_TYPE,
   CONCEPT_REFERENCE_SOURCE,
   CONCEPT_REFERENCE_TERM,
@@ -39,6 +41,7 @@ export const getConceptReferenceTerms = () =>
 
 // user apis
 export const getUsers = () => axios.get(`${USER}`).then((res) => res);
+export const getUser = (id) => axios.get(`${USER}/${id}`).then((res) => res);
 
 // list of all concept names
 export const getConceptNames = () =>
@@ -87,6 +90,9 @@ export const putDrugById = (id, body) =>
 export const deleteDrugById = (id) =>
   axios.delete(`${DRUG}/${id}`).then((res) => res);
 
+// person name api
+export const getPersons = () => axios.get(`${PERSON_NAME}`).then((res) => res);
+
 // personAttributeType apis
 export const getPersonAttributeTypes = () =>
   axios.get(`${PERSON_ATTRIBUTE_TYPE}`).then((res) => res);
@@ -98,17 +104,6 @@ export const updatePersonAttributeTypeById = (id, body) =>
   axios.put(`${PERSON_ATTRIBUTE_TYPE}/${id}`, body).then((res) => res);
 export const deletePersonAttributeTypeById = (id) =>
   axios.delete(`${PERSON_ATTRIBUTE_TYPE}/${id}`).then((res) => res);
-
-// privilege apis
-export const getPrivileges = () => axios.get(`${PRIVILEGE}`).then((res) => res);
-export const getPrivilegeById = (id) =>
-  axios.get(`${PRIVILEGE}/${id}`).then((res) => res);
-export const postPrivilege = (body) =>
-  axios.post(`${PRIVILEGE}`, body).then((res) => res);
-export const putPrivilegeById = (id, body) =>
-  axios.put(`${PRIVILEGE}/${id}`, body).then((res) => res);
-export const deletePrivilegeById = (id) =>
-  axios.delete(`${PRIVILEGE}/${id}`).then((res) => res);
 
 // relationshipType apis
 export const getRelationshipTypes = () =>
@@ -133,3 +128,6 @@ export const updateVisitTypeById = (id, body) =>
   axios.put(`${VISIT_TYPE}/${id}`, body).then((res) => res);
 export const deleteVisitTypeById = (id) =>
   axios.delete(`${VISIT_TYPE}/${id}`).then((res) => res);
+
+// role apis
+export const getRoles = () => axios.get(`${ROLE}`).then((res) => res);

@@ -4,6 +4,7 @@ import { getConceptNameDetails } from "../../api/services";
 import MaterialTable, { MTableToolbar } from "material-table";
 import { FormControlLabel, Switch } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 import Controls from "../../components/controls/Controls";
 
 const Concepts = () => {
@@ -84,7 +85,12 @@ const Concepts = () => {
     {
       icon: () => <EditIcon color="primary" />,
       tooltip: "Edit",
-      onClick: (event, rowData) => setRedirect(`/concept/${rowData.uuid}`)
+      onClick: (event, rowData) => setRedirect(`/concept/edit/${rowData.uuid}`)
+    },
+    {
+      icon: () => <VisibilityIcon color="primary" />,
+      tooltip: "View",
+      onClick: (event, rowData) => setRedirect(`/concept/view/${rowData.uuid}`)
     }
   ];
 

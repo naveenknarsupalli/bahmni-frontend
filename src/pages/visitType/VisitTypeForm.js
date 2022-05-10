@@ -80,7 +80,7 @@ const VisitTypeForm = () => {
         response = await updateVisitTypeById(id, values);
       }
       if (response.status === 200 || response.status === 201) {
-        setRedirect("/visitType/all");
+        setRedirect("/visitType/view/all");
       }
     };
 
@@ -92,14 +92,14 @@ const VisitTypeForm = () => {
   };
 
   const cancel = () => {
-    setRedirect("/visitType/all");
+    setRedirect("/visitType/view/all");
   };
 
   const deleteItem = () => {
     const deleteItemFunc = async () => {
       const response = await deleteVisitTypeById(id);
       if (response.status === 204) {
-        setRedirect("/visitType/all");
+        setRedirect("/visitType/view/all");
       }
     };
     deleteItemFunc();

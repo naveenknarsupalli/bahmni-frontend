@@ -23,14 +23,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function CommonPage(props) {
-  const { id, title, displayAll, displayForm } = props;
+  const { action, id, title, viewAll, viewEach, addOrEdit } = props;
   const classes = useStyles();
+
   return (
     <>
       <div className={classes.pageHeight}>
         <p className={classes.pageTitle}>{title}</p>
-        {id === "all" && displayAll}
-        {id !== "all" && displayForm}
+        {action === "view" && id === "all" && viewAll}
+        {action === "view" && id !== "all" && viewEach}
+        {action === "edit" && addOrEdit}
       </div>
     </>
   );

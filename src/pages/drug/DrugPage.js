@@ -4,14 +4,15 @@ import DrugForm from "./DrugForm";
 import Drugs from "./Drugs";
 
 export default function PatientRelationshipTypePage() {
-  const { id } = useParams();
+  const { id, action } = useParams();
 
   return (
     <CommonPage
       id={id}
+      action={action}
       title="Medication Data: Drugs Management"
-      displayAll={<Drugs />}
-      displayForm={<DrugForm id={id} />}
+      viewAll={<Drugs />}
+      addOrEdit={<DrugForm id={id} />}
     />
   );
 }

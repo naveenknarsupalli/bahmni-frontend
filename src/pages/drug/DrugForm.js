@@ -1,245 +1,371 @@
-import { Grid } from "@material-ui/core";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Redirect, useParams } from "react-router-dom";
-import Select from "react-select";
-import Controls from "../../components/controls/Controls";
-import { useForm, Form } from "../../components/useForm";
-import { getConceptNames } from "../../services/conceptService";
+import { Redirect, withRouter } from "react-router-dom";
 import {
   deleteDrugById,
+  getConceptNames,
   getDrugById,
-  insertDrug,
-  updateDrugById
-} from "../../services/drugService";
+  postDrug,
+  putDrugById
+} from "../../api/services";
 
-const initialFValues = {
-  name: "",
-  conceptId: "",
-  combination: false,
-  dosageForm: "",
-  strength: null,
-  maximumDailyDose: null,
-  minimumDailyDose: null,
-  retireReason: "",
-  retired: false
-};
+import React from "react";
+import Select from "react-select";
 
-const DrugForm = () => {
-  const { id } = useParams();
-  const [redirect, setRedirect] = useState(null);
-  const [options, setOptions] = useState([]);
-  const [defaultConceptIdValue, setDefaultConceptIdValue] = useState(0);
-  const [defaultDosageFormValue, setDefaultDosageFormValue] = useState(0);
+class DrugForm extends React.Component {
+  constructor(props) {
+    super(props);
 
-  const validate = (fieldValues = values) => {
-    let temp = { ...errors };
-    if ("fullName" in fieldValues)
-      temp.fullName = fieldValues.fullName ? "" : "This field is required.";
-    if ("email" in fieldValues)
-      temp.email = /$^|.+@.+..+/.test(fieldValues.email)
-        ? ""
-        : "Email is not valid.";
-    if ("mobile" in fieldValues)
-      temp.mobile =
-        fieldValues.mobile.length > 9 ? "" : "Minimum 10 numbers required.";
-    if ("departmentId" in fieldValues)
-      temp.departmentId =
-        fieldValues.departmentId.length !== 0 ? "" : "This field is required.";
-    setErrors({
-      ...temp
-    });
+    const initialDrugState = {
+      combination: false,
+      conceptId: "",
+      dosageForm: "",
+      maximumDailyDose: "",
+      minimumDailyDose: "",
+      name: "",
+      retired: false,
+      strength: "",
+      retireReason: ""
+    };
 
-    if (fieldValues === values)
-      return Object.values(temp).every((x) => x === "");
-  };
+    this.state = {
+      drug: initialDrugState,
+      redirect: null,
+      drugId: this.props.match.params.id,
+      options: [],
+      isLoading: true,
+      error: false
+    };
+  }
 
-  const {
-    values,
-    setValues,
-    errors,
-    setErrors,
-    handleInputChange,
-    clearForm
-  } = useForm(initialFValues, true, validate);
+  componentDidMount() {
+    const { drugId } = this.state;
 
-  useEffect(() => {
-    const defaultConceptIdValue = options.filter(
-      (option) => option.value === values.conceptId
-    );
-    setDefaultConceptIdValue(defaultConceptIdValue);
-  }, [options, values.conceptId]);
+    getConceptNames()
+      .then((response) => {
+        const options = [];
+        Object.keys(response.data).forEach((key) => {
+          options.push({
+            value: response.data[key].conceptId,
+            label: response.data[key].name
+          });
+        });
 
-  const loadDrugData = useCallback(async () => {
-    const conceptNamesResponse = await getConceptNames();
-    const options = [];
-    Object.keys(conceptNamesResponse.data).forEach((key) => {
-      options.push({
-        value: conceptNamesResponse.data[key].conceptId,
-        label: conceptNamesResponse.data[key].name
+        this.setState({ options }, () => {
+          if (drugId !== "add") {
+            getDrugById(drugId)
+              .then((response) => {
+                this.setState({ drug: response.data, isLoading: false });
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          } else {
+            this.setState({ isLoading: false });
+          }
+        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
+  }
+
+  getValueFor(field) {
+    return field === null ? "" : field;
+  }
+
+  unretireDrug() {
+    const { drug, drugId } = this.state;
+    drug.retired = false;
+    this.setState({ drug }, () => {
+      putDrugById(drugId, drug)
+        .then(() => {
+          this.setState({ redirect: "/drug/view/all" });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     });
-    setOptions(options);
+  }
 
-    if (id !== "add") {
-      const response = await getDrugById(id);
-      console.log(response.data);
+  nameChangeHandler(event) {
+    const { drug } = this.state;
+    drug.name = event.target.value;
+    this.setState({ drug });
+  }
 
-      setValues(response.data);
-    } else {
-      setValues(initialFValues);
-    }
-  }, [id, setValues]);
+  conceptIdChangeHandler(selectedOption) {
+    const { drug } = this.state;
+    drug.conceptId = selectedOption.value;
+    this.setState({ drug });
+  }
 
-  useEffect(() => {
-    loadDrugData();
-  }, [loadDrugData]);
+  filterOptions(option, inputValue) {
+    const { label, value } = option;
+    return (
+      (label != null &&
+        label.toLowerCase().includes(inputValue.toLowerCase())) ||
+      value.toString().toLowerCase().includes(inputValue.toLowerCase())
+    );
+  }
 
-  const toggleRetired = () => {
-    setValues((prevValues) => {
-      return {
-        ...prevValues,
-        retired: !prevValues.retired
-      };
-    });
-  };
+  combinationChangeHandler(event) {
+    const { drug } = this.state;
+    drug.combination = event.target.checked;
+    this.setState({ drug });
+  }
 
-  const save = () => {
-    const saveItem = async () => {
-      var response;
-      if (id === "add") {
-        response = await insertDrug(values);
+  dosageFormChangeHandler(selectedOption) {
+    const { drug } = this.state;
+    drug.dosageForm = selectedOption.value;
+    this.setState({ drug });
+  }
+
+  strengthChangeHandler(event) {
+    const { drug } = this.state;
+    drug.strength = event.target.value;
+    this.setState({ drug });
+  }
+
+  minimumDailyDoseChangeHandler(event) {
+    const { drug } = this.state;
+    drug.minimumDailyDose = event.target.value;
+    this.setState({ drug });
+  }
+
+  maximumDailyDoseChangeHandler(event) {
+    const { drug } = this.state;
+    drug.maximumDailyDose = event.target.value;
+    this.setState({ drug });
+  }
+
+  retireReasonChangeHandler(event) {
+    const { drug } = this.state;
+    drug.retireReason = event.target.value;
+    this.setState({ drug });
+  }
+
+  submitDrugFormHandler() {
+    const { drug, drugId } = this.state;
+    if (drug.name === "" || drug.conceptId === "")
+      this.setState({ error: true });
+    else {
+      if (drugId === "add") {
+        postDrug(drug)
+          .then(() => {
+            this.setState({ redirect: "/drug/view/all" });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       } else {
-        response = await updateDrugById(id, values);
+        putDrugById(drugId, drug)
+          .then(() => {
+            this.setState({ redirect: "/drug/view/all" });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
-      if (response.status === 200 || response.status === 201) {
-        setRedirect("/drug/all");
-      }
-    };
-    saveItem();
+    }
+  }
 
-    //   if (validate()){
-    //     employeeService.insertEmployee(values)
-    //     resetForm()
-    // }
-  };
+  cancelButtonHandler() {
+    this.setState({ redirect: "/drug/view/all" });
+  }
 
-  const reset = () => {
-    loadDrugData();
-  };
+  retireDrug() {
+    let { drug, drugId } = this.state;
+    drug.retired = true;
+    this.setState({ drug }, () => {
+      putDrugById(drugId, drug)
+        .then(() => {})
+        .catch((error) => {
+          console.log(error);
+        });
 
-  const cancel = () => {
-    setRedirect("/drug/all");
-  };
+      this.setState({ redirect: "/drug/view/all" });
+    });
+  }
 
-  const deleteItem = () => {
-    const deleteItemFunc = async () => {
-      const response = await deleteDrugById(id);
-      if (response.status === 204) {
-        setRedirect("/drug/all");
-      }
-    };
-    deleteItemFunc();
-  };
+  deleteDrug() {
+    let { drugId } = this.state;
+    deleteDrugById(drugId)
+      .then(() => {
+        this.setState({ redirect: "/drug/view/all" });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
-  if (redirect) return <Redirect to={redirect} />;
+  render() {
+    const {
+      nameChangeHandler,
+      conceptIdChangeHandler,
+      filterOptions,
+      combinationChangeHandler,
+      dosageFormChangeHandler,
+      strengthChangeHandler,
+      minimumDailyDoseChangeHandler,
+      maximumDailyDoseChangeHandler,
+      retireReasonChangeHandler,
+      unretireDrug,
+      submitDrugFormHandler,
+      cancelButtonHandler,
+      retireDrug,
+      deleteDrug,
+      getValueFor
+    } = this;
 
-  return (
-    <Form>
-      <Grid container>
-        <Grid item xs={6}>
-          <Controls.Input
-            label="Name"
-            name="name"
-            value={values.name}
-            onChange={handleInputChange}
-          />
+    const { drug, redirect, drugId, options, isLoading, error } = this.state;
 
-          <Controls.Checkbox
-            label="Combination"
-            name="combination"
-            value={values.combination}
-            onChange={handleInputChange}
-          />
+    const getDefaultConceptIdValue = options.filter(
+      (option) => option.value === drug.conceptId
+    );
 
-          <Controls.Input
-            label="Strength"
-            name="strength"
-            value={values.strength}
-            onChange={handleInputChange}
-            type="number"
-          />
+    const getDefaultDosageFormValue = options.filter(
+      (option) => option.value === drug.dosageForm
+    );
 
-          <Controls.Input
-            label="Maximum Daily Dose"
-            name="maximumDailyDose"
-            value={values.maximumDailyDose}
-            onChange={handleInputChange}
-            type="number"
-          />
+    if (redirect) {
+      return <Redirect to={redirect} />;
+    }
 
-          <Controls.Input
-            label="Minimum Daily Dose"
-            name="minimumDailyDose"
-            value={values.minimumDailyDose}
-            onChange={handleInputChange}
-            type="number"
-          />
+    if (!isLoading || drugId === "add") {
+      return (
+        <React.Fragment>
+          {error && <p>Fill the required fields</p>}
+          <p>Concept Drug Management</p>
+          {drug.retired && (
+            <p>
+              This drug is retired by ... ... - {drug.retireReason}{" "}
+              <button type="button" onClick={unretireDrug.bind(this)}>
+                Unretire this drug
+              </button>
+            </p>
+          )}
+          <hr />
 
-          {/* concept id */}
-          <div style={{ width: "300px", display: "inline-block" }}>
-            <label htmlFor="conceptId">Concept: </label>
-            <Select
-              id="conceptId"
-              name="conceptId"
-              placeholder="Enter concept name or id"
-              defaultValue={defaultConceptIdValue}
-              // onChange={conceptIdChangeHandler.bind(this)}
-              options={options}
-              // filterOption={filterOptions}
+          <form>
+            <label htmlFor="name">Name*: </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              onChange={nameChangeHandler.bind(this)}
+              value={getValueFor(drug.name)}
             />
-          </div>
+            <br />
 
-          {/* dosage form */}
-          <div style={{ width: "300px", display: "inline-block" }}>
+            <label htmlFor="conceptId">Concept*: </label>
+            <div style={{ width: "300px", display: "inline-block" }}>
+              <Select
+                id="conceptId"
+                name="conceptId"
+                placeholder="Enter concept name or id"
+                defaultValue={getDefaultConceptIdValue}
+                onChange={conceptIdChangeHandler.bind(this)}
+                options={options}
+                filterOption={filterOptions}
+              />
+            </div>
+
+            <br />
+            <label htmlFor="combination">Combination: </label>
+            <input
+              type="checkbox"
+              id="combination"
+              name="combination"
+              onChange={combinationChangeHandler.bind(this)}
+              checked={getValueFor(drug.combination)}
+            />
+            <br />
+
             <label htmlFor="dosageForm">Dosage Form: </label>
-            <Select
-              id="dosageForm"
-              name="dosageForm"
-              placeholder="Enter concept name or id"
-              defaultValue={defaultDosageFormValue}
-              // onChange={conceptIdChangeHandler.bind(this)}
-              options={options}
-              // filterOption={filterOptions}
-            />
-          </div>
+            <div style={{ width: "300px", display: "inline-block" }}>
+              <Select
+                id="dosageForm"
+                name="dosageForm"
+                placeholder="Enter concept name or id"
+                defaultValue={getDefaultDosageFormValue}
+                onChange={dosageFormChangeHandler.bind(this)}
+                options={options}
+                filterOption={filterOptions}
+              />
+            </div>
 
-          <div>
-            <Controls.SaveButton onClick={save} />
-            <Controls.ResetButton onClick={reset} />
-            <Controls.CancelButton onClick={cancel} />
-          </div>
-        </Grid>
-
-        {id !== "add" && (
-          <Grid item xs={6}>
-            <Controls.Input
-              label="Reason To Retire"
-              name="retireReason"
-              value={values.retireReason}
-              onChange={handleInputChange}
-              multiline
-              rows={4}
+            <br />
+            <label htmlFor="strength">Strength: </label>
+            <input
+              type="text"
+              id="strength"
+              name="strength"
+              onChange={strengthChangeHandler.bind(this)}
+              value={getValueFor(drug.strength)}
             />
-            <Controls.DeleteButton onClick={deleteItem} />
-            <Controls.RetireButton
-              retired={values.retired}
-              onClick={toggleRetired}
-            />
-          </Grid>
-        )}
-      </Grid>
-    </Form>
-  );
-};
+            <br />
 
-export default DrugForm;
+            <label htmlFor="minimumDailyDose">Minimum Daily Dose: </label>
+            <input
+              type="number"
+              id="minimumDailyDose"
+              name="minimumDailyDose"
+              onChange={minimumDailyDoseChangeHandler.bind(this)}
+              value={getValueFor(drug.minimumDailyDose)}
+              step="any"
+            />
+            <br />
+
+            <label htmlFor="maximumDailyDose">Maximum Daily Dose: </label>
+            <input
+              type="number"
+              id="maximumDailyDose"
+              name="maximumDailyDose"
+              onChange={maximumDailyDoseChangeHandler.bind(this)}
+              value={getValueFor(drug.maximumDailyDose)}
+              step="any"
+            />
+            <br />
+
+            <button type="button" onClick={submitDrugFormHandler.bind(this)}>
+              Save Concept Drug
+            </button>
+            <button type="button" onClick={cancelButtonHandler.bind(this)}>
+              Cancel
+            </button>
+          </form>
+          <hr />
+
+          {drugId !== "add" && (
+            <div>
+              <p>Retire this Drug</p>
+              <label htmlFor="retireReason">Reason: </label>
+              <input
+                type="text"
+                id="retireReason"
+                name="retireReason"
+                onChange={retireReasonChangeHandler.bind(this)}
+                value={getValueFor(drug.retireReason)}
+              />
+              <br />
+              <button type="button" onClick={retireDrug.bind(this)}>
+                Retire this Drug
+              </button>
+
+              <hr />
+
+              <p>Permanently Delete Concept Drug</p>
+              <br />
+              <button type="button" onClick={deleteDrug.bind(this)}>
+                Permanently Delete Concept Drug
+              </button>
+            </div>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    return <p>Loading...</p>;
+  }
+}
+
+export default withRouter(DrugForm);

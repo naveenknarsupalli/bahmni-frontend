@@ -93,6 +93,8 @@ class ConceptForm extends React.Component {
       mapRelationshipOptions: [],
       mapSourceOptions: [],
       mapReferenceTermOptions: [],
+      filteredMapReferenceTermOptions: [],
+      mapCodeOptions: [],
 
       synonyms: initialConceptState.conceptNames.filter(
         (item) => item.conceptNameType !== "FULLY_SPECIFIED"
@@ -113,6 +115,10 @@ class ConceptForm extends React.Component {
     this.getDefaultConceptMapTypeId = this.getDefaultConceptMapTypeId.bind(
       this
     );
+    this.conceptSourceIdChangeHandler = this.conceptSourceIdChangeHandler.bind(
+      this
+    );
+    this.mapCodeChangeHandler = this.mapCodeChangeHandler.bind(this);
   }
 
   mergeConceptnames() {
@@ -182,7 +188,7 @@ class ConceptForm extends React.Component {
     this.mergeConceptnames();
 
     const { conceptId, concept } = this.state;
-    console.log("concept", concept);
+    console.log("concept - save", concept);
 
     // if (conceptId === "add") {
     //   postConcept(concept)
@@ -258,6 +264,25 @@ class ConceptForm extends React.Component {
   dataTypeChangeHandler(selectedOption) {
     const { concept } = this.state;
     concept.dataTypeId.conceptDataTypeId = selectedOption.value;
+
+    if (selectedOption.value === 1) {
+      concept.conceptNumeric = {
+        hiAbsolute: null,
+        hiCritical: null,
+        hiNormal: null,
+        lowAbsolute: null,
+        lowCritical: null,
+        lowNormal: null,
+        units: null,
+        precise: false,
+        displayPrecision: null
+      };
+    } else if (selectedOption.value === 13) {
+      concept.conceptComplex = null;
+    } else if (selectedOption.value === 2) {
+      concept.conceptAnswers = [];
+    }
+
     this.setState({ concept }, () => {
       this.setDataType();
     });
@@ -277,6 +302,8 @@ class ConceptForm extends React.Component {
       .then(() => this.setMapRelationshipOptions())
       .then(() => this.setMapSourceOptions())
       .then(() => this.setMapReferenceTermOptions())
+      .then(() => this.setFilteredMapReferenceTermOptions())
+      .then(() => this.setMapCodeOptions())
       .then(() => this.setFetchedConcept())
       .then(() => this.setDataType())
       .then(() => this.setSynonyms())
@@ -383,6 +410,10 @@ class ConceptForm extends React.Component {
       getConceptReferenceSources()
         .then((response) => {
           const mapSourceOptions = [];
+          mapSourceOptions.push({
+            label: "Search All Sources",
+            value: 0
+          });
           Object.keys(response.data).forEach((key) => {
             mapSourceOptions.push({
               label: response.data[key].name,
@@ -401,20 +432,44 @@ class ConceptForm extends React.Component {
     return new Promise((resolve, reject) => {
       getConceptReferenceTerms()
         .then((response) => {
-          const mapReferenceTermOptions = [];
-          Object.keys(response.data).forEach((key) => {
-            mapReferenceTermOptions.push({
-              label: response.data[key].code,
-              value: response.data[key].conceptReferenceTermId,
-              conceptSourceId:
-                response.data[key].conceptSourceId["conceptSourceId"]
-            });
-          });
-          this.setState({ mapReferenceTermOptions }, () => {
+          this.setState({ mapReferenceTermOptions: response.data }, () => {
             resolve("success");
           });
         })
         .catch((e) => reject(e));
+    });
+  }
+
+  setFilteredMapReferenceTermOptions() {
+    return new Promise((resolve, reject) => {
+      getConceptReferenceTerms()
+        .then((response) => {
+          this.setState(
+            { filteredMapReferenceTermOptions: response.data },
+            () => {
+              resolve("success");
+            }
+          );
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  setMapCodeOptions() {
+    return new Promise((resolve, reject) => {
+      const { filteredMapReferenceTermOptions } = this.state;
+
+      const mapCodeOptions = [];
+      filteredMapReferenceTermOptions.forEach((item) => {
+        mapCodeOptions.push({
+          label: item.conceptSourceId + " " + item.code,
+          value: item.conceptReferenceTermId
+        });
+      });
+
+      this.setState({ mapCodeOptions }, () => {
+        resolve("success");
+      });
     });
   }
 
@@ -435,17 +490,7 @@ class ConceptForm extends React.Component {
         getConceptById(conceptId)
           .then((response) => {
             console.log(response.data);
-            this.setState(
-              { concept: response.data },
-              () => resolve("success")
-
-              // () => {
-              //   this.setState(
-              //     { dataType: response.data.dataTypeId.conceptDataTypeId },
-              //     () => resolve("success")
-              //   );
-              // }
-            );
+            this.setState({ concept: response.data }, () => resolve("success"));
           })
           .catch((e) => reject(e));
       } else {
@@ -468,23 +513,6 @@ class ConceptForm extends React.Component {
       }
       this.setState({ synonyms }, () => resolve("success"));
     });
-  }
-
-  getDefaultConceptSetsValue() {
-    const { conceptSets } = this.state.concept;
-    const { conceptOptions } = this.state;
-
-    let defaultConceptSetsValue = [];
-    conceptSets.forEach((concept) => {
-      const eachValueOptions = conceptOptions.filter(
-        (conceptOption) => conceptOption.value === concept.conceptId
-      );
-      defaultConceptSetsValue = [
-        ...defaultConceptSetsValue,
-        ...eachValueOptions
-      ];
-    });
-    return defaultConceptSetsValue;
   }
 
   answerConceptChangeHandler(selectedOptions) {
@@ -511,6 +539,37 @@ class ConceptForm extends React.Component {
     const { concept } = this.state;
     concept.conceptAnswers = newConceptAnswers;
     this.setState({ concept });
+  }
+
+  conceptSourceIdChangeHandler(selectedOption, index) {
+    const { mapReferenceTermOptions } = this.state;
+    if (selectedOption.value === 0) {
+      this.setState(
+        {
+          filteredMapReferenceTermOptions: mapReferenceTermOptions
+        },
+        () => {
+          this.setMapCodeOptions();
+        }
+      );
+    } else {
+      this.setState(
+        {
+          filteredMapReferenceTermOptions: mapReferenceTermOptions.filter(
+            (item) => item.conceptSourceId === selectedOption.value
+          )
+        },
+        () => {
+          this.setMapCodeOptions();
+        }
+      );
+    }
+  }
+
+  mapCodeChangeHandler(selectedOption, index) {
+    const { concept } = this.state;
+    const maps = [...concept.mappings];
+    maps[index].conceptMapTypeId = selectedOption.value;
   }
 
   answerDrugChangeHandler(selectedOptions) {
@@ -691,7 +750,6 @@ class ConceptForm extends React.Component {
       isSetChangeHandler,
       getValueFor,
       conceptSetsChangeHandler,
-      getDefaultConceptSetsValue,
       filterOptions,
       getDefaultAnswerConceptValue,
       getDefaultAnswerDrugValue,
@@ -705,7 +763,9 @@ class ConceptForm extends React.Component {
       addMappingButtonHandler,
       removeMappingButtonHandler,
       conceptMapTypeIdChangeHandler,
-      getDefaultConceptMapTypeId
+      getDefaultConceptMapTypeId,
+      conceptSourceIdChangeHandler,
+      mapCodeChangeHandler
     } = this;
 
     const {
@@ -716,19 +776,13 @@ class ConceptForm extends React.Component {
       conceptOptions,
       drugOptions,
       dataTypeOptions,
+      mapSourceOptions,
       isLoading,
       synonyms,
       mapRelationshipOptions,
-      dataType
+      dataType,
+      mapCodeOptions
     } = this.state;
-
-    // const dataType = concept.dataTypeId.conceptDataTypeId;
-
-    // const dataType =
-    //   concept.datatypeId !== undefined
-    //     ? concept.datatypeId.conceptDatatypeId
-    //     : 4;
-    console.log("dataType", dataType);
 
     const { conceptNumeric, conceptNames, mappings } = concept;
 
@@ -753,11 +807,28 @@ class ConceptForm extends React.Component {
         conceptComplexHandler.value === concept.conceptComplex
     );
 
+    const getDefaultConceptSetsValue = () => {
+      const { conceptSets } = this.state.concept;
+      const { conceptOptions } = this.state;
+
+      let defaultConceptSetsValue = [];
+      conceptSets.forEach((concept) => {
+        const eachValueOptions = conceptOptions.filter(
+          (conceptOption) => conceptOption.value === concept.conceptId
+        );
+        defaultConceptSetsValue = [
+          ...defaultConceptSetsValue,
+          ...eachValueOptions
+        ];
+      });
+      return defaultConceptSetsValue;
+    };
+
+    const defaultConceptSetsValue = getDefaultConceptSetsValue();
+
     if (redirect) {
       return <Redirect to={redirect} />;
     }
-
-    console.log("dataTypeOptions", dataTypeOptions);
 
     if (!isLoading || conceptId === "add") {
       return (
@@ -791,16 +862,44 @@ class ConceptForm extends React.Component {
                     <Select
                       id="conceptMapTypeId"
                       name="conceptMapTypeId"
-                      defaultValue={() => getDefaultConceptMapTypeId(index)}
+                      defaultValue={
+                        item.conceptMapTypeId === 1
+                          ? { label: "SAME-AS", value: 1 }
+                          : getDefaultConceptMapTypeId(index)
+                      }
+                      // defaultValue={() => getDefaultConceptMapTypeId(index)}
                       onChange={(selectedOption) =>
                         conceptMapTypeIdChangeHandler(selectedOption, index)
                       }
                       options={mapRelationshipOptions}
                     />
                   </div>
+                  <div style={{ width: "300px", display: "inline-block" }}>
+                    <Select
+                      id="conceptSourceId"
+                      name="conceptSourceId"
+                      // defaultValue={() => getDefaultConceptSourceId(index)}
+
+                      onChange={(selectedOption) =>
+                        conceptSourceIdChangeHandler(selectedOption, index)
+                      }
+                      options={mapSourceOptions}
+                    />
+                  </div>
+                  <div style={{ width: "300px", display: "inline-block" }}>
+                    <Select
+                      id="code"
+                      name="code"
+                      // defaultValue={() => getDefaultCode(index)}
+                      onChange={(selectedOption) =>
+                        mapCodeChangeHandler(selectedOption, index)
+                      }
+                      options={mapCodeOptions}
+                    />
+                  </div>
                   <input
                     name="name"
-                    type="text"
+                    type="name"
                     id="name"
                     value={item.name}
                     onChange={(e) => synonymNameChangeHandler(e, index)}
@@ -955,7 +1054,7 @@ class ConceptForm extends React.Component {
                       isMulti
                       id="conceptSets"
                       name="conceptSets"
-                      defaultValue={getDefaultConceptSetsValue.bind(this)}
+                      defaultValue={defaultConceptSetsValue}
                       onChange={conceptSetsChangeHandler.bind(this)}
                       options={conceptOptions}
                     />
@@ -1066,6 +1165,20 @@ class ConceptForm extends React.Component {
                       conceptNumeric === null ? "" : conceptNumeric.lowNormal
                     )}
                     onChange={(e) => numericChangeHandler(e, "lowNormal")}
+                  />
+                </label>
+                <br />
+
+                <label htmlFor="units">
+                  Units
+                  <input
+                    type="text"
+                    id="units"
+                    name="units"
+                    value={getValueFor(
+                      conceptNumeric === null ? "" : conceptNumeric.units
+                    )}
+                    onChange={(e) => numericChangeHandler(e, "units")}
                   />
                 </label>
                 <br />

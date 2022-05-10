@@ -1,5 +1,5 @@
 import { Grid } from "@material-ui/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Redirect, useParams } from "react-router-dom";
 import Controls from "../../components/controls/Controls";
 import { useForm, Form } from "../../components/useForm";
@@ -84,7 +84,7 @@ const PatientRelationshipForm = () => {
         response = await updatePatientRelationshipTypeById(id, values);
       }
       if (response.status === 200 || response.status === 201) {
-        setRedirect("/patientRelationshipType/all");
+        setRedirect("/patientRelationshipType/view/all");
       }
     };
 
@@ -101,14 +101,14 @@ const PatientRelationshipForm = () => {
   };
 
   const cancel = () => {
-    setRedirect("/patientRelationshipType/all");
+    setRedirect("/patientRelationshipType/view/all");
   };
 
   const deleteItem = () => {
     const deleteItemFunc = async () => {
       const response = await deletePatientRelationshipTypeById(id);
       if (response.status === 204) {
-        setRedirect("/patientRelationshipType/all");
+        setRedirect("/patientRelationshipType/view/all");
       }
     };
     deleteItemFunc();
